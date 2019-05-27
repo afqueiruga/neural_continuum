@@ -21,15 +21,13 @@ where the input is a function with a domain, and the output is also function? I'
 
 ![continuous in, continuous out](img/in_out.png)
 
-What we will end up with is an integrodifferential equation that describes a "neural continuum." The linear operations along the width of each layer will be replaced by an integral along a signal space, and the nested applications will be replaced by integrating a differential equation in a depth direction.
+What we will end up with is an integro-differential equation that describes a "neural continuum." The linear operations along the width of each layer will be replaced by an integral along a signal space, and the nested applications will be replaced by integrating a differential equation in a depth direction.
 
 ## Why?
 
-What bothers me the most about deep learning today is 
+What bothers me the most about deep learning today is the lack of convergence proofs. If you throw more parameters at a problem, there is no guarantee that it will do better than the smaller model.
 
 How do we compare two incrementally different model architectures? 
-
-By 
 
 ## Arrays to Signals
 
@@ -37,7 +35,7 @@ The basic element of a neural network calculation is the array of activations. (
 $$
 \mathbf{h}^l=\{h_1,h_2,...h_N\}
 $$
-In convolutrional networks, sometimes these arrays are 2D, 3D, or higher carrying some sort of spatio-temporal-channel meaning. Then, $\mathbf{h}$ has multiple indices in a grid layout, which can be indexed as $h^l_{ijkc}$ for a four dimensional example with $N_x\times N_y \times N_z \times N_c$ dimension.
+In convolutional networks, sometimes these arrays are 2D, 3D, or higher carrying some sort of spatio-temporal-channel meaning. Then, $\mathbf{h}$ has multiple indices in a grid layout, which can be indexed as $h^l_{ijkc}$ for a four dimensional example with $N_x\times N_y \times N_z \times N_c$ dimension.
 
 Consider now a one dimensional function that maps from some nominal domain onto the reals
 $$
@@ -47,13 +45,13 @@ we can have higher dimensional input fields with higher dimensional outputs, e.g
 $$
 h(\xi,\eta,\omega):[-1,1]\times[-1,1]\times[-1,1]\rightarrow \mathbb{R}^c
 $$
-for a three dimensional field with $c$ channels at each point. (The domian $[-1,1]$ was an arbitrary choice, but if we picked any other domain, we'd probably end up mapping back to $[-1,1]$ for other steps later. E.g., common basis sets and Gaussian integration weights are defined on this domain.)
+for a three dimensional field with $c$ channels at each point. (The domain $[-1,1]$ was an arbitrary choice, but if we picked any other domain, we'd probably end up mapping back to $[-1,1]$ for other steps later. E.g., common basis sets and Gaussian integration weights are defined on this domain.)
 
-Let us now choose to intepret our array of hidden activations as coefficients to a 
+Let us now choose to interpret our array of hidden activations as coefficients to a 
 
 ![](img/piecewise_to_signal.png)
 
-These numbers don't *necessarily* have any order applied in their meaning. For example, in NLP applications the indices refer to entries in the lexicon, whose order is arbitrary. But, for a lot of applications there is a spatiotemporal intepretation with images or audio signals, for example. I don't think this line of reasoning is restricted to such applications.
+These numbers don't *necessarily* have any order applied in their meaning. For example, in NLP applications the indices refer to entries in the lexicon, whose order is arbitrary. But, for a lot of applications there is a spatiotemporal interpretation with images or audio signals, for example. I don't think this line of reasoning is restricted to such applications.
 
 ## Linear Operations to Continuous Convolutions
 
@@ -75,7 +73,7 @@ $$
 y(\xi)=\int_{-1}^1W^d(\xi,\eta)x(\eta)\mathrm{d}\eta+b^d(\xi)
 $$
 
-We can illustrate the anology as so:
+We can illustrate the analogy as so:
 
 ![continuous linear operation](img/convolve.png)
 
@@ -87,7 +85,7 @@ y = (f^{N_d} \circ f^{N_d-1}... \circ f^2...f^1)(x),
 $$
 (where we've tucked the $W+b$ operations into $f$ for this section.)
 
-Let's define the analogy to a sumation operator for composition,
+Let's define the analogy to a summation operator for composition,
 $$
 \mathop{\Large\bigcirc}_{d=1}^{N}f^{d}=f^{N}\circ f^{N-1}...\circ f^{2}\circ f^{1}
 $$
@@ -147,7 +145,7 @@ We don't have to use $f$, either. We can define an arbitrary continuous activati
 
 ## The Neural Continua Integro-Differential Equation
 
-Piecing together the above continuous analogues from the individual operatotions in a discrete neural network, we derive the following integrodifferential equation
+Piecing together the above continuous analogues from the individual operations in a discrete neural network, we derive the following integrodifferential equation
 $$
 \frac{\partial}{\partial \delta} h(\xi,\delta)= \gamma\left(\int_{-1}^1
  W(\xi,\xi',\delta)h(\xi',\delta)\mathrm{d}\xi'+b(\xi,\delta) \right)
@@ -166,7 +164,7 @@ The network $\mathcal{F}$ is defined by the selection of nonlinearity $\gamma$, 
 
 ## Training
 
-We can define a loss functin between the label signal and solution of the network by integrating over the signal,
+We can define a loss function between the label signal and solution of the network by integrating over the signal,
 $$
 L(y,y^*)=\int_{-1}^{1}
 \left(y(\xi)-y^*(\xi)\right)^2\mathrm{d}\xi
@@ -190,11 +188,11 @@ and 3D functions for $b$ to produce a discrete $\hat{b}$,
 $$
 \hat{b}(\xi,\delta)=\sum_i b_i\psi(\beta,\delta)
 $$
-We can recover the original specification by having 3-way piecewise constant discretizations in $\xi,\eta$, and $\delta$.  We could slice in $\delta$ first, to define our layers, then pick different piecewising-supports for each of these $\delta$s to have weight matrices with different dimensions. (The original discrete neural networks are just nonlinear versions of this—but let's not make this manuscript recursive!) 
+We can recover the original specification by having 3-way piecewise constant discretizations in $\xi,\eta$, and $\delta$.  We could slice in $\delta$ first, to define our layers, then pick different piecewise supports for each of these $\delta$s to have weight matrices with different dimensions. (The original discrete neural networks are just nonlinear versions of this—but let's not make this manuscript recursive!) 
 
 My intuition suggests using spectral shape functions along $\xi$ and $\xi'$, and using compact shape functions along $\delta$. I suspect orthogonality along $\xi$ might be problematic.
 
-The integration along the depth can be handled by any ordinary differential equation integrator. We used Forward Euler to make the correspondence, but we could use higher order or implicit solvers. It will make a distinction when doing the backwards propogation of the output of the network. The full domain support of the integral convolution ($\int W h \mathrm{d}\xi'$) could make the integration in depth-time tricky to do efficiently.
+The integration along the depth can be handled by any ordinary differential equation integrator. We used Forward Euler to make the correspondence, but we could use higher order or implicit solvers. It will make a distinction when doing the backwards propagation of the output of the network. The full domain support of the integral convolution ($\int W h \mathrm{d}\xi'$) could make the integration in depth-time tricky to do efficiently.
 
 ## Multiple Representations of the Same Model
 
@@ -209,9 +207,9 @@ This yields a linear projection operation which is common in finite element and 
 
 ## What to do with this?
 
-I never implemented this idea because it seemed like a lot of effort. I originally had the variational calculus interpretation of models as a function we're trying to approximate. That perspective makes us look for better abstract representations of functions and function spaces to figure out more clever ways to  Lately, I've been leaning towards the discrete program intepretations of models, wherein we're directly synthesizing and learning *computer programs* with floating point variables and a listing of instructions `fmul`s, `fadd`s, `goto`s, etc. A few new developments made me flip back to these pages in my notebook and start thinking about mathematically solving for continuous functions again.
+I never implemented this idea because it seemed like a lot of effort. I originally had the variational calculus interpretation of models as a function we're trying to approximate. That perspective makes us look for better abstract representations of functions and function spaces to figure out more clever ways to  Lately, I've been leaning towards the discrete program interpretations of models, wherein we're directly synthesizing and learning *computer programs* with floating point variables and a listing of instructions `fmul`s, `fadd`s, `goto`s, etc. A few new developments made me flip back to these pages in my notebook and start thinking about mathematically solving for continuous functions again.
 
-The [Neural Ordinary Differential Equation](https://arxiv.org/abs/1806.07366) at NeurIPS uses this kind of idea in the depth. [The Julia implementation](https://github.com/JuliaDiffEq/DiffEqFlux.jl) using [Flux.jl ](https://github.com/FluxML/Flux.jl) shows that it could possibly be implemented very easily. The work of [Chang et. al](https://arxiv.org/abs/1710.10348) used a similar ODE interprettation of residual networks, and pushed it further to develop a multigrid-in-time technique for accelerated training. (I really like this; it uses the concept of smooth refinement of an approximation, and the multigrid method is great algorithm.) They present a similar equation to $\mathrm{d}h/\mathrm{d}\delta=(f(h)-h)/\Delta$ specific for residual networks where $f=G(h)+h$. The formulation I developed here includes a simultaneous continuization of the width of the network that can applied to more than residual networks.
+The [Neural Ordinary Differential Equation](https://arxiv.org/abs/1806.07366) at NeurIPS uses this kind of idea in the depth. [The Julia implementation](https://github.com/JuliaDiffEq/DiffEqFlux.jl) using [Flux.jl ](https://github.com/FluxML/Flux.jl) shows that it could possibly be implemented very easily. The work of [Chang et. al](https://arxiv.org/abs/1710.10348) used a similar ODE interpretation of residual networks, and pushed it further to develop a multigrid-in-time technique for accelerated training. (I really like this; it uses the concept of smooth refinement of an approximation, and the multigrid method is great algorithm.) They present a similar equation to $\mathrm{d}h/\mathrm{d}\delta=(f(h)-h)/\Delta$ specific for residual networks where $f=G(h)+h$. The formulation I developed here includes a simultaneous continuum-ization of the width of the network that can applied to more than residual networks.
 
 Learning more about full waveform inversion (I credit talking to Russell J. Hewett and following his course for [PySit]()) made me realize that the optimizing for fields like $W$ or $b$ is well studied and not completely intractable.
 

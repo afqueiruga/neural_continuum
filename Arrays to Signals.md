@@ -109,18 +109,13 @@ $$
 $$
 h(\delta=\Delta \times (i+1))=f^i(h(\delta=\Delta\times i))
 $$
-Between two layers, starting at $\delta=\Delta i$, the difference in $h$ is
-$$
-\begin{align}
-h(\delta+\Delta)-h(\delta) = & f(h(\delta))-h(\delta)\\
-= & \int_\delta^{\delta+\Delta} \frac{\mathrm{d} h(t)}{\mathrm{d}t}\mathrm{d}t
-\end{align}
-$$
-where $t$ is a dummy variable of integration. 
+Between two layers, starting at $\delta=\Delta i$, the difference in $h$ is equal to an integral between two points,
 
 $$
 h(\delta+\Delta)=h(\delta)+\int_\delta^{\delta+\Delta} \frac{\mathrm{d}h}{\mathrm{d}\delta} \mathrm{d} \delta' = f(h(\delta))
 $$
+
+where $t$ is a dummy variable of integration. Doing some rewriting,
 
 $$
 \int_\delta^{\delta+\Delta} \frac{\mathrm{d}h}{\mathrm{d}\delta} \mathrm{d} \delta' = f(h(\delta))-h(\delta)

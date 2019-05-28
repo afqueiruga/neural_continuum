@@ -11,7 +11,7 @@ where $D$ is the number of layers, and $f^l$, $W^l$, and $b^l$ are activation fu
 $$
 x_i\rightarrow h^1_i \rightarrow h^2_i\rightarrow...h^D_i\rightarrow y_i
 $$
-where each hidden layer
+where each hidden layer is the result of the operation $h^{d+1}=f^d(W^dh^d+b^d)$.
 
 I want to make this continuous. How do we describe an arbitrary functional
 $$
@@ -143,8 +143,6 @@ which gives us a differential equation for $h$ along the depth direction $\delta
 
 We don't have to use $f$, either. We can define an arbitrary continuous activation function $\gamma$ which corresponds to a particular discrete function with the above equation. 
 
-*Note that this means we want to correspond to continuous activation functions. Instead of ReLU, we want Softplus.* idk if this is right
-
 ## The Neural Continua Integro-Differential Equation
 
 Piecing together the above continuous analogues from the individual operations in a discrete neural network, we derive the following integrodifferential equation
@@ -198,9 +196,7 @@ The integration along the depth can be handled by any ordinary differential equa
 
 ## Multiple Representations of the Same Model
 
-The fundamental question I asked was how do we add one more network
-
-The discrete gives us a way to transform between one "width-depth" discretization to another by projecting between the four meshes ($\hat{W},\hat{b}\rightarrow \hat{W}',\hat{b}'$). Suppose we had trained one network $\mathcal{F}$, and decide we want more discretization in the depth. We can create a new mesh that's finer 
+The discrete gives us a way to transform between one "width-depth" discretization to another by projecting between the four meshes ($\hat{W},\hat{b}\rightarrow \hat{W}',\hat{b}'$). Suppose we had trained one network $\mathcal{F}$, and decide we want more discretization in the depth or width. We can create a new mesh that's finer, and then project to the new unknowns,
 $$
 \min_{w'_i} \int_{0}^1\int_{-1}^1\int_{-1}^1 \left( 
 \sum_{i=1}^N\left( w_i\phi_i\right)-\sum_{i=1}^{N'}\left( w'_i\phi'_i\right) \right)^2\mathrm{d}\xi'\mathrm{d}\eta\mathrm{d}\delta
@@ -215,7 +211,9 @@ The [Neural Ordinary Differential Equation](https://arxiv.org/abs/1806.07366) at
 
 Learning more about full waveform inversion (I credit talking to Russell J. Hewett and following his course for [PySit]()) made me realize that the optimizing for fields like $W$ or $b$ is well studied and not completely intractable.
 
-Secondly, today I attended a talk on [group equivarent convolutional networks](https://arxiv.org/abs/1902.04615) by [Taco Cohen](https://tacocohen.wordpress.com) which was deriving the discrete model using differential geometry from the perspective of continuous functions obeying symmetries. 
+Today (when I wrote up most of this) I attended a talk on [group equivarent convolutional networks](https://arxiv.org/abs/1902.04615) by [Taco Cohen](https://tacocohen.wordpress.com) which was deriving the discrete model using differential geometry from the perspective of continuous functions obeying symmetries. This approach is actually phrasing the hidden layers as continuous fields and designing layers that obey properties on the fields, before discretizing the operators.
+
+Hopefully this presentation helps interpret new developments in continuous models. I would want to find a problem with 1D functions as inputs to actually implement this exact idea—perhaps audio signals.
 
 ## Reference
 

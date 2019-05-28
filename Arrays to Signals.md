@@ -25,19 +25,19 @@ What we will end up with is an integro-differential equation that describes a "n
 
 ## Why?
 
-What bothers me the most about deep learning today is the lack of convergence proofs. If you throw more parameters at a problem, there is no guarantee that it will do better than the smaller model.
+Something that bothers me about deep learning today is the lack of convergence behavior. If you throw more parameters at a problem, there is no guarantee that it will do better than the smaller model. Non-convexity and non-uniqueness of problems will certainly make formal convergence proofs a challenge. Maybe we can change the problem slightly to give better behavior. 
 
-How do we compare two incrementally different model architectures? 
-
+How do we compare two incrementally different model architectures? If we have one network that was trained, what's an equivalent network with one more parameter in width or depth? I think this is necessary to show a smooth path.
 ![network refinement](img/refinement.png)
+Instead of looking for a specific network, let's posit that we're looking for another more abstract object with various representations on our computer. If we can describe a continuous analogue, we can then define a way to slowly increase or decrease the number of parameters describing the network.
 
 ## Arrays to Signals
 
-The basic element of a neural network calculation is the array of activations. (I'll be saying "Array" instead of "Tensor".) Let $N_l$ denote the width of this layer $l$. At each layer, there is an $N_l$ array of hidden values 
+The basic element of a neural network calculation is the array of activations. Let $N_w$ denote the width of this layer $d$. At each layer, there is an $N_w$ array of hidden values 
 $$
-\mathbf{h}^l=\{h_1,h_2,...h_N\}
+\mathbf{h}^d=\{h_1,h_2,...h_N\}
 $$
-In convolutional networks, sometimes these arrays are 2D, 3D, or higher carrying some sort of spatio-temporal-channel meaning. Then, $\mathbf{h}$ has multiple indices in a grid layout, which can be indexed as $h^l_{ijkc}$ for a four dimensional example with $N_x\times N_y \times N_z \times N_c$ dimension.
+In convolutional networks, sometimes these arrays are 2D, 3D, or higher carrying some sort of spatio-temporal-channel meaning. Then, $\mathbf{h}$ has multiple indices in a grid layout, which can be indexed as $h^d_{ijkc}$ for a four dimensional example with $N_x\times N_y \times N_z \times N_c$ dimension.
 
 Consider now a one dimensional function that maps from some nominal domain onto the reals
 $$
@@ -57,27 +57,25 @@ These numbers don't *necessarily* have any order applied in their meaning. For e
 
 ## Linear Operations to Continuous Convolutions
 
-The linear step 
+The linear step of the perceptron is:
 $$
 \mathbf{y}=\mathbf{W}\mathbf{x}+\mathbf{b}
 $$
-
-The operation is expressed in summation notation explicitly by,
+The operation is expressed in summation notation explicitly by
 $$
-y_i = \sum_{j=1}^{N_d} W_{ij} x_j + b_i
+y_i = \sum_{j=1}^{N_w} W_{ij} x_j + b_i
 $$
 A 2D array is just one possible representation of a linear operator. As we did above, we can represent the weight matrix as a 2D function,
 $$
 W(\xi,\eta) = [-1,1]\times[-1,1] \rightarrow \mathbb{R}
 $$
-
+The limit of summation is integration. In conjunction with adding a 1D bias function, the analogy of the linear transform is the following integral:
 $$
 y(\xi)=\int_{-1}^1W^d(\xi,\eta)x(\eta)\mathrm{d}\eta+b^d(\xi)
 $$
-
 We can illustrate the analogy as so:
-
 ![continuous linear operation](img/convolve.png)
+In the continuous analogue, every weight matrix is replaced by a 2D function that convolves in the input function into an output function. This is also a linear operator. We chose both domains to be the same for the next step.
 
 ## Composition to Integration
 
@@ -141,7 +139,7 @@ $$
 
 which gives us a differential equation for $h$ along the depth direction $\delta$.We can solve it with any integrator, not just Forward Euler. Forward Euler is just how we make the analogy to the feed forward discrete network. $\Delta$ is a constant that is smaller than the total length of the domain in $\Delta$ and scales the rate of the discrete activation functions $f$.
 
-We don't have to use $f$, either. We can define an arbitrary continuous activation function $\gamma$ which corresponds to a particular discrete function with the above equation. 
+It is not necessary to use the original activation function $f$. We can define an activation rate $\gamma$ which corresponds to a particular discrete function with the above equation, or select any arbitrary function. I initially hypothesized a function with a continuous derivative (softplus vs. rectifier) would be best; I do not think that is the case anymore but have not tested this.
 
 ## The Neural Continua Integro-Differential Equation
 
@@ -154,27 +152,13 @@ where $\gamma(x)=(f(x)-x)/\Delta$, subject to the initial condition
 $$
 h(\xi,0)=x(0).
 $$
-After solving this equation, the output of the network is :
+After solving this equation, the output of the network is:
 $$
 y(\xi)=h(\xi,1)
 $$
 The network $\mathcal{F}$ is defined by the selection of nonlinearity $\gamma$, 3D weight field $W(\xi,\eta,\delta)$, and 2D bias field $b(\xi,\delta$). There is no discrete choice of layer widths or network depth.
 
 ![neural continuum](img/hWb_continuum2.png)
-
-## Training
-
-We can define a loss function between the label signal and solution of the network by integrating over the signal,
-$$
-L(y,y^*)=\int_{-1}^{1}
-\left(y(\xi)-y^*(\xi)\right)^2\mathrm{d}\xi
-$$
-
-The optimization problem involves searching for *functions* $W(\xi,\eta,\delta)$ and $b(\xi,\delta)$ that minimize the integral loss,
-$$
-\min_{W,b} \sum_{i=1}^{N_{train}} L(y^i,\mathcal{F}x^i)
-$$
-This may seem more complicated, but inverting on the coefficients to fields in partial differential equations is a well studied field. This problem looks a lot like the full waveform inversion problem in geological prospecting, wherein we're solving for material properties such as elastic bulk modulus $K(x,y,z)$ and density $\rho(x,y,z)$ subject to acoustic datasets paired with sources, $hammer(t)$ and $f(x_{microphone},t)$.
 
 ## Discretization
 
@@ -194,7 +178,27 @@ My intuition suggests using spectral shape functions along $\xi$ and $\xi'$, and
 
 The integration along the depth can be handled by any ordinary differential equation integrator. We used Forward Euler to make the correspondence, but we could use higher order or implicit solvers. It will make a distinction when doing the backwards propagation of the output of the network. The full domain support of the integral convolution ($\int W h \mathrm{d}\xi'$) could make the integration in depth-time tricky to do efficiently.
 
+## Training
+
+We can define a loss function between the label signal and solution of the network by integrating over the signal,
+$$
+L(y,y^*)=\int_{-1}^{1}
+\left(y(\xi)-y^*(\xi)\right)^2\mathrm{d}\xi
+$$
+The optimization problem involves searching for *functions* $W(\xi,\eta,\delta)$ and $b(\xi,\delta)$ that minimize the integral loss,
+$$
+\min_{W,b} \sum_{i=1}^{N_{train}} L(y^i,\mathcal{F}x^i)
+$$
+After discretization, the approximate optimization problem is:
+$$
+\min_{\hat{W_i},\hat{b_i}} \sum_{i=1}^{N_{train}} L(y^i,\hat{\mathcal{F}}x^i)
+$$
+
+This may seem more complicated, but inverting on the coefficients to fields in partial differential equations is a well studied field. This problem looks a lot like the full waveform inversion problem in geological prospecting, wherein we're solving for material properties such as elastic bulk modulus $K(x,y,z)$ and density $\rho(x,y,z)$ subject to acoustic datasets paired with sources, $hammer(t)$ and $f(x_{microphone},t)$.
+
 ## Multiple Representations of the Same Model
+
+Note that now we have posited a *true* problem, and an *approximate* problem. We can now argue that each time we choose a new discretization (cf. network architecture), we are looking for a better (or worse) facsimile on our computer, not a completely new entity.
 
 The discrete gives us a way to transform between one "width-depth" discretization to another by projecting between the four meshes ($\hat{W},\hat{b}\rightarrow \hat{W}',\hat{b}'$). Suppose we had trained one network $\mathcal{F}$, and decide we want more discretization in the depth or width. We can create a new mesh that's finer, and then project to the new unknowns,
 $$
@@ -202,6 +206,14 @@ $$
 \sum_{i=1}^N\left( w_i\phi_i\right)-\sum_{i=1}^{N'}\left( w'_i\phi'_i\right) \right)^2\mathrm{d}\xi'\mathrm{d}\eta\mathrm{d}\delta
 $$
 This yields a linear projection operation which is common in finite element and spectral methods. 
+
+The ultimate goal is to obtain a procedure where we can:
+
+1. Optimize a continuum on an initial discretization,
+2. Refine until reaching the desired amount of accuracy,
+3. Project down a more efficient representation for inference efficiency.
+
+I hypothesize that this would give us more confidence in our models, and a faster training procedure by exploiting multigrid methods.
 
 ## What to do with this?
 

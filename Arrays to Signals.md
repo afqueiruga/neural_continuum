@@ -29,6 +29,8 @@ What bothers me the most about deep learning today is the lack of convergence pr
 
 How do we compare two incrementally different model architectures? 
 
+![network refinement](img/refinement.png)
+
 ## Arrays to Signals
 
 The basic element of a neural network calculation is the array of activations. (I'll be saying "Array" instead of "Tensor".) Let $N_l$ denote the width of this layer $l$. At each layer, there is an $N_l$ array of hidden values 
@@ -160,7 +162,7 @@ y(\xi)=h(\xi,1)
 $$
 The network $\mathcal{F}$ is defined by the selection of nonlinearity $\gamma$, 3D weight field $W(\xi,\eta,\delta)$, and 2D bias field $b(\xi,\delta$). There is no discrete choice of layer widths or network depth.
 
-![neural continuum](img/hWb_continuum.png)
+![neural continuum](img/hWb_continuum2.png)
 
 ## Training
 
